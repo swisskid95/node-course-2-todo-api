@@ -1,6 +1,7 @@
 // External Imports
 const express = require('express')
 const bodyParser = require('body-parser')
+const { ObjectID } = require('mongodb')
 
 // Local Imports
 const { mongoose } = require('./db/mongoose')
@@ -56,6 +57,32 @@ app.get('/todos', (req, res) => {
       })
     }
   )
+})
+
+app.get('/todos/:id', (req, res) => {
+  const id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Todo.findById(id)
+    .then(todo => {
+      if (!todo) {
+        return res.status(404).json({
+          status: 404,
+          error: 'Todo not found'
+        })
+      }
+
+      res.status(200).json({
+        status: 200,
+        data: todo
+      })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 app.listen(port, () => {
