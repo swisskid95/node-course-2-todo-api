@@ -1,6 +1,7 @@
 // External libraries
 const request = require('supertest')
 const expect = require('expect')
+const { ObjectID } = require('mongodb')
 
 // Import f0r local files
 const { Todo } = require('./../models/todos')
@@ -8,9 +9,11 @@ const { app } = require('./../server')
 
 const todos = [
   {
+    _id: new ObjectID(),
     text: 'Test todo text 1'
   },
   {
+    _id: new ObjectID(),
     text: 'Test todo text 2'
   }
 ]
@@ -77,6 +80,32 @@ describe('GET /todos', () => {
       .expect(res => {
         expect(res.body.data.length).toBe(2)
       })
+      .end(done)
+  })
+})
+
+describe('Get /todos/:id', () => {
+  it('should return todo doc with id specified', done => {
+    request(app)
+      .get(`/todos/${todos[0]._id.toHexString()}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.data.text).toBe(todos[0].text)
+      })
+      .end(done)
+  })
+
+  it('should return a 404', done => {
+    request(app)
+      .get(`/todos/${new ObjectID().toHexString()}`)
+      .expect(404)
+      .end(done)
+  })
+
+  it('should return a 404 error code for non-object generated ID', done => {
+    request(app)
+      .get('/todos/123')
+      .expect(404)
       .end(done)
   })
 })
